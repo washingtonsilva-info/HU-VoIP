@@ -148,7 +148,7 @@ jobs:
         Write-Host "Building PJSIP with MSBuild..."
 
         # Build PJSIP using MSBuild with solution file
-        $msbuild = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
+        $msbuild = "msbuild"
 
         # Try to build using solution file first
         if (Test-Path "pjproject.sln") {
@@ -220,7 +220,7 @@ jobs:
       run: |
         Write-Host "Building MicroSIP..."
 
-        $msbuild = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
+        $msbuild = "msbuild"
 
         # Build MicroSIP
         & $msbuild microsip.vcxproj `
