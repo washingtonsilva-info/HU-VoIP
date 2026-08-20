@@ -120,7 +120,7 @@ jobs:
           '#define PJMEDIA_HAS_VPX 1',
           '',
           '/* Audio codecs */',
-          '#define PJMEDIA_HAS_OPUS 1',
+          '#define PJMEDIA_HAS_OPUS_CODEC 0',
           '#define PJMEDIA_HAS_SILK 1',
           '#define PJMEDIA_HAS_G722 1',
           '#define PJMEDIA_HAS_G7221 1',
@@ -161,7 +161,6 @@ jobs:
                 "pjlib/build/pjlib.vcxproj",
                 "pjlib-util/build/pjlib-util.vcxproj",
                 "pjnath/build/pjnath.vcxproj",
-                "third_party/build/opus/libopus.vcxproj",
                 "pjmedia/build/pjmedia.vcxproj",
                 "pjsip/build/pjsip.vcxproj",
                 "pjsip/build/pjsip_simple.vcxproj",
@@ -215,16 +214,6 @@ jobs:
                 Write-Host "Copying third_party lib: $($_.Name)"
                 Copy-Item $_.FullName -Destination "$libDest/" -Force -ErrorAction SilentlyContinue
             }
-                   # Create the filename expected by MicroSIP
-        $opusLib = Get-ChildItem -Path "pjproject" -Recurse -Filter "*opus*.lib" | Select-Object -First 1
-
-        if ($opusLib) {
-            Write-Host "Creating opus.lib from $($opusLib.FullName)"
-            Copy-Item $opusLib.FullName -Destination "$libDest\opus.lib" -Force
-        } else {
-            Write-Error "Compiled Opus library was not found."
-            exit 1
-        }
         }
 
         # List what we have
