@@ -20,6 +20,9 @@
 #define _GLOBAL_VERSION "3.22.3"
 #define _GLOBAL_VERSION_COMMA 3,22,3,5
 #define _GLOBAL_KEY "*********"
-#define _GLOBAL_VIDEO
-#define _GLOBAL_NAME "MicroSIP"
-#define _GLOBAL_COMPANY "www.microsip.org"
+
+// Video oculto na versao institucional do HU
+// #define _GLOBAL_VIDEO
+
+#define _GLOBAL_NAME "HU VoIP"
+#define _GLOBAL_COMPANY "Hospital Universitario"
