@@ -222,18 +222,35 @@ jobs:
             Write-Host "  $($_.Name)"
         }
 
-    - name: Build MicroSIP
+        - name: Build MicroSIP
       working-directory: ${{ github.workspace }}
       shell: pwsh
       run: |
         Write-Host "Building MicroSIP..."
 
+        $projectFile = "microsip.vcxproj"
+        $projectText = Get-Content -Path $projectFile -Raw
+        $projectText = $projectText.Replace("opus.lib;", "")
+        $projectText = $projectText.Replace(";opus.lib", "")
+        $projectText = $projectText.Replace("opus.lib", "")
+        Set-Content -Path $projectFile -Value $projectText -Encoding UTF8
+
+        Write-Host "Checking remaining opus.lib references..."
+        $opusReferences = Select-String -Path $projectFile -Pattern "opus.lib" -SimpleMatch
+
+        if ($opusReferences) {
+            Write-Error "opus.lib references still exist in microsip.vcxproj"
+            $opusReferences
+            exit 1
+        }
+
+        Write-Host "No opus.lib references found."
+
         $msbuild = "msbuild"
 
-        # Build MicroSIP
-        & $msbuild microsip.vcxproj `
-            /p:Configuration=${{env.BUILD_CONFIGURATION}} `
-            /p:Platform=${{env.BUILD_PLATFORM}} `
+        & $msbuild "microsip.vcxproj" `
+            /p:Configuration=${{ env.BUILD_CONFIGURATION }} `
+            /p:Platform=${{ env.BUILD_PLATFORM }} `
             /p:PlatformToolset=v143 `
             /m
 
