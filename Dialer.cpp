@@ -1227,7 +1227,7 @@ void Dialer::UpdateCallButton(BOOL forse, int callsCount)
 
 				m_ButtonCall.ShowWindow(SW_SHOW);
 #ifdef _GLOBAL_VIDEO
-				GetDlgItem(IDC_VIDEO_CALL)->ShowWindow(SW_SHOW);
+				GetDlgItem(IDC_VIDEO_CALL)->ShowWindow(SW_HIDE);
 #endif
 				GetDlgItem(IDC_MESSAGE)->ShowWindow(SW_SHOW);
 			}
