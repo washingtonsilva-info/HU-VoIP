@@ -158,13 +158,7 @@ jobs:
             # Build individual projects
             Write-Host "Building individual projects..."
             $projects = @(
-                "pjlib/build/pjlib.vcxproj",
-                "pjlib-util/build/pjlib-util.vcxproj",
-                "pjnath/build/pjnath.vcxproj",
-                "pjmedia/build/pjmedia.vcxproj",
-                "pjsip/build/pjsip.vcxproj",
-                "pjsip/build/pjsip_simple.vcxproj",
-                "pjsip/build/pjsua_lib.vcxproj"
+                "pjsip-apps/build/libpjproject.vcxproj"
             )
 
             foreach ($proj in $projects) {
@@ -216,7 +210,7 @@ jobs:
             }
         }
 
-        # Create the exact PJSIP library name expected by MicroSIP
+        # Locate the consolidated PJSIP library
         $expectedPjLib = Join-Path $libDest "libpjproject-i386-Win32-vc14-Release-Static.lib"
         $pjProjectLib = Get-ChildItem -Path "pjproject" -Recurse -File -Filter "libpjproject*.lib" | Select-Object -First 1
 
@@ -226,13 +220,19 @@ jobs:
                 Write-Host $_.FullName
             }
 
-            Write-Error "No libpjproject library was generated."
+            Write-Error "The consolidated libpjproject library was not generated."
             exit 1
         }
 
-        Write-Host "PJSIP library found: $($pjProjectLib.FullName)"
-        Write-Host "Creating expected library: $expectedPjLib"
+        Write-Host "Consolidated PJSIP library found: $($pjProjectLib.FullName)"
         Copy-Item -Path $pjProjectLib.FullName -Destination $expectedPjLib -Force
+
+        if (-not (Test-Path $expectedPjLib)) {
+            Write-Error "Expected PJSIP library was not created: $expectedPjLib"
+            exit 1
+        }
+
+        Write-Host "Expected PJSIP library created: $expectedPjLib"
 
 
         # List what we have
