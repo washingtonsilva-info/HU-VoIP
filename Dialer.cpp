@@ -708,7 +708,8 @@ void Dialer::RebuildButtons(bool init)
 			rect.left -= stepPx;
 			rect.right -= stepPx;
 		}
-		if (addRec) {
+		// Gravacao desabilitada na versao institucional HU VoIP
+		if (false) {
 			m_ButtonRec.Create(Translate(_T("REC")), WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_CHECKBOX | BS_PUSHLIKE | WS_DISABLED, rect, this, IDC_DIALER_REC);
 			m_ButtonRec.SetFont(GetFont());
 			AutoMove(m_ButtonRec.m_hWnd, 100, 100, 0, 0);
@@ -1683,21 +1684,8 @@ void Dialer::OnBnClickedConf()
 
 void Dialer::OnBnClickedRec()
 {
-	MessagesContact*  messagesContact = mainDlg->messagesDlg->GetMessageContact();
-	if (messagesContact && messagesContact->callId != -1) {
-		call_user_data *user_data = (call_user_data *)pjsua_call_get_user_data(messagesContact->callId);
-		if (user_data) {
-			user_data->CS.Lock();
-			if (user_data->recorder_id == PJSUA_INVALID_ID) {
-				msip_call_recording_start(user_data);
-			}
-			else {
-				msip_call_recording_stop(user_data, 0, true);
-			}
-			user_data->CS.Unlock();
-			mainDlg->messagesDlg->UpdateRecButton(user_data);
-		}
-	}
+    // Gravacao de chamadas desabilitada na versao institucional HU VoIP.
+    return;
 }
 
 void Dialer::OnBnClickedVoicemail()

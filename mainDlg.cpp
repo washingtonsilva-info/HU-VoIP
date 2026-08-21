@@ -226,8 +226,9 @@ static void on_call_state(pjsua_call_id call_id, pjsip_event* e)
 		msip_call_unhold(call_info);
 		break;
 	case PJSIP_INV_STATE_CONFIRMED:
-		if (accountSettings.autoRecording) {
-			msip_call_recording_start(user_data, call_info);
+		// Gravacao automatica desabilitada na versao institucional HU VoIP.
+		if (false) {
+   			 msip_call_recording_start(user_data, call_info);
 		}
 		if (accountSettings.autoHangUpTime > 0) {
 			/* Schedule timer to hangup call after the specified duration */
