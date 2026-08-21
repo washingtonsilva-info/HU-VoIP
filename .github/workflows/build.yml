@@ -222,7 +222,7 @@ jobs:
             Write-Host "  $($_.Name)"
         }
 
-        - name: Build MicroSIP
+    - name: Build MicroSIP
       working-directory: ${{ github.workspace }}
       shell: pwsh
       run: |
@@ -260,7 +260,7 @@ jobs:
         }
 
         Write-Host "MicroSIP build completed successfully"
-
+      
     - name: Prepare Output
       shell: pwsh
       run: |
