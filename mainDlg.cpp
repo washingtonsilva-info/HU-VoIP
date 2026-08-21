@@ -2216,12 +2216,27 @@ void CmainDlg::SwitchDND(int state, bool update)
 
 void CmainDlg::OnMenuAccountAdd()
 {
+    AdminPasswordDlg adminDlg(this);
+
+    if (adminDlg.DoModal() != IDOK) {
+        return;
+    }
+
+    if (adminDlg.password != _T("HUVoIP-Teste-2026")) {
+        AfxMessageBox(
+            _T("Senha administrativa incorreta."),
+            MB_OK | MB_ICONERROR
+        );
+        return;
+    }
+
     if (!accountDlg) {
         accountDlg = new AccountDlg(this);
     }
     else {
         accountDlg->SetForegroundWindow();
     }
+
     if (accountDlg) {
         accountDlg->Load(-1);
     }
@@ -2229,6 +2244,20 @@ void CmainDlg::OnMenuAccountAdd()
 
 void CmainDlg::OnMenuAccountEdit(UINT nID)
 {
+	    AdminPasswordDlg adminDlg(this);
+
+    if (adminDlg.DoModal() != IDOK) {
+        return;
+    }
+
+    if (adminDlg.password != _T("HUVoIP-Teste-2026")) {
+        AfxMessageBox(
+            _T("Senha administrativa incorreta."),
+            MB_OK | MB_ICONERROR
+        );
+        return;
+    }
+
 	if (!accountDlg) {
 		accountDlg = new AccountDlg(this);
 	}
@@ -2242,6 +2271,20 @@ void CmainDlg::OnMenuAccountEdit(UINT nID)
 }
 void CmainDlg::OnMenuAccountChange(UINT nID)
 {
+	    AdminPasswordDlg adminDlg(this);
+
+    if (adminDlg.DoModal() != IDOK) {
+        return;
+    }
+
+    if (adminDlg.password != _T("HUVoIP-Teste-2026")) {
+        AfxMessageBox(
+            _T("Senha administrativa incorreta."),
+            MB_OK | MB_ICONERROR
+        );
+        return;
+    }
+
 	if (accountSettings.accountId) {
 		PJAccountDelete(true);
 	}
@@ -2261,6 +2304,20 @@ void CmainDlg::OnMenuAccountChange(UINT nID)
 
 void CmainDlg::OnMenuAccountLocalEdit()
 {
+	    AdminPasswordDlg adminDlg(this);
+
+    if (adminDlg.DoModal() != IDOK) {
+        return;
+    }
+
+    if (adminDlg.password != _T("HUVoIP-Teste-2026")) {
+        AfxMessageBox(
+            _T("Senha administrativa incorreta."),
+            MB_OK | MB_ICONERROR
+        );
+        return;
+    }
+	
 	if (MACRO_ENABLE_LOCAL_ACCOUNT) {
 		if (!accountDlg) {
 			accountDlg = new AccountDlg(this);
