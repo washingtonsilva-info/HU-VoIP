@@ -245,25 +245,40 @@ jobs:
       working-directory: ${{ github.workspace }}
       shell: pwsh
       run: |
-        Write-Host "Building MicroSIP..."
+        Write-Host "Preparing MicroSIP project..."
 
         $projectFile = "microsip.vcxproj"
         $projectText = Get-Content -Path $projectFile -Raw
+
+        # Remove the external Opus library
         $projectText = $projectText.Replace("opus.lib;", "")
         $projectText = $projectText.Replace(";opus.lib", "")
         $projectText = $projectText.Replace("opus.lib", "")
+
+        # Disable MicroSIP video code because PJSIP video is disabled
+        $projectText = $projectText.Replace("_GLOBAL_VIDEO;", "")
+        $projectText = $projectText.Replace(";_GLOBAL_VIDEO", "")
+        $projectText = $projectText.Replace("_GLOBAL_VIDEO", "")
+
+        # Use the same runtime library used by PJSIP
+        $projectText = $projectText.Replace("<RuntimeLibrary>MultiThreaded</RuntimeLibrary>", "<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>")
+        $projectText = $projectText.Replace("<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>", "<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>")
+
         Set-Content -Path $projectFile -Value $projectText -Encoding UTF8
 
-        Write-Host "Checking remaining opus.lib references..."
-        $opusReferences = Select-String -Path $projectFile -Pattern "opus.lib" -SimpleMatch
+        Write-Host "Validating project changes..."
 
-        if ($opusReferences) {
-            Write-Error "opus.lib references still exist in microsip.vcxproj"
-            $opusReferences
+        $forbiddenReferences = Select-String -Path $projectFile -Pattern "opus.lib|_GLOBAL_VIDEO" -AllMatches
+
+        if ($forbiddenReferences) {
+            Write-Error "Forbidden references still exist in microsip.vcxproj"
+            $forbiddenReferences
             exit 1
         }
 
-        Write-Host "No opus.lib references found."
+        Write-Host "Opus external library removed."
+        Write-Host "MicroSIP video code disabled."
+        Write-Host "Runtime library aligned with PJSIP."
 
         $msbuild = "msbuild"
 
@@ -271,6 +286,7 @@ jobs:
             /p:Configuration=${{ env.BUILD_CONFIGURATION }} `
             /p:Platform=${{ env.BUILD_PLATFORM }} `
             /p:PlatformToolset=v143 `
+            /p:RuntimeLibrary=MultiThreadedDLL `
             /m
 
         if ($LASTEXITCODE -ne 0) {
