@@ -164,7 +164,7 @@ jobs:
             foreach ($proj in $projects) {
                 if (Test-Path $proj) {
                     Write-Host "Building $proj..."
-                    & $msbuild $proj /p:Configuration=Release /p:Platform=Win32 /p:PlatformToolset=v143 /m
+                    & $msbuild $proj /p:Configuration=Release /p:Platform=Win32 /p:PlatformToolset=v143 /p:RuntimeLibrary=MultiThreaded /m
                     if ($LASTEXITCODE -ne 0) {
                         Write-Host "Warning: Build of $proj may have issues, continuing..."
                     }
@@ -260,9 +260,9 @@ jobs:
         $projectText = $projectText.Replace(";_GLOBAL_VIDEO", "")
         $projectText = $projectText.Replace("_GLOBAL_VIDEO", "")
 
-        # Use the same runtime library used by PJSIP
-        $projectText = $projectText.Replace("<RuntimeLibrary>MultiThreaded</RuntimeLibrary>", "<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>")
-        $projectText = $projectText.Replace("<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>", "<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>")
+        # Keep static MFC and static C runtime
+        $projectText = $projectText.Replace("<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>", "<RuntimeLibrary>MultiThreaded</RuntimeLibrary>")
+        $projectText = $projectText.Replace("<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>", "<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>")
 
         Set-Content -Path $projectFile -Value $projectText -Encoding UTF8
 
@@ -278,7 +278,7 @@ jobs:
 
         Write-Host "Opus external library removed."
         Write-Host "MicroSIP video code disabled."
-        Write-Host "Runtime library aligned with PJSIP."
+        Write-Host "Static runtime enabled."
 
         $msbuild = "msbuild"
 
@@ -286,7 +286,7 @@ jobs:
             /p:Configuration=${{ env.BUILD_CONFIGURATION }} `
             /p:Platform=${{ env.BUILD_PLATFORM }} `
             /p:PlatformToolset=v143 `
-            /p:RuntimeLibrary=MultiThreadedDLL `
+            /p:RuntimeLibrary=MultiThreaded `
             /m
 
         if ($LASTEXITCODE -ne 0) {
