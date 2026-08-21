@@ -727,3 +727,18 @@ CONTROL         "<a>?</a>", IDC_SYSLINK_SESSION_TIMER, "SysLink", 0x0, 222, 288 
 END
 //-----------------------------------------------------------------------
 //-----------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////
+//
+// Autenticacao administrativa HU VoIP
+//
+
+IDD_ADMIN_PASSWORD DIALOGEX 0, 0, 210, 82
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Acesso administrativo"
+FONT 9, "Segoe UI"
+BEGIN
+    LTEXT           "Senha administrativa:",IDC_STATIC,10,12,190,10
+    EDITTEXT        IDC_ADMIN_PASSWORD,10,27,190,14,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "Entrar",IDOK,65,57,65,14
+    PUSHBUTTON      "Cancelar",IDCANCEL,135,57,65,14
+END

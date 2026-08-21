@@ -20,6 +20,7 @@
 
 #include "mainDlg.h"
 #include "microsip.h"
+#include "AdminPasswordDlg.h"
 
 #include "Mmsystem.h"
 #include "settings.h"
@@ -2279,8 +2280,25 @@ void CmainDlg::OnMenuCustomRange(UINT nID)
 
 void CmainDlg::OnMenuSettings()
 {
+    AdminPasswordDlg adminDlg(this);
+
+    if (adminDlg.DoModal() != IDOK) {
+        return;
+    }
+
+    // Senha temporaria apenas para testar o dialogo.
+    // A senha definitiva sera fornecida por hash no processo de compilacao.
+    if (adminDlg.password != _T("HUVoIP-Teste-2026")) {
+        AfxMessageBox(
+            _T("Senha administrativa incorreta."),
+            MB_OK | MB_ICONERROR
+        );
+        return;
+    }
+
     if (!settingsDlg) {
         bool showDlg = true;
+
         if (showDlg) {
             settingsDlg = new SettingsDlg(this);
         }
