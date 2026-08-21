@@ -115,7 +115,7 @@ jobs:
           '#define PJ_CONFIG_MICROSIP 1',
           '',
           '/* Video support disabled for HU VoIP */',
-          '#define PJMEDIA_HAS_VIDEO 0',
+          '#define PJMEDIA_HAS_VIDEO 1',
           '#define PJMEDIA_HAS_FFMPEG 0',
           '#define PJMEDIA_HAS_VPX 0',
           '',
@@ -145,7 +145,7 @@ jobs:
         )
         Set-Content -Path "pjlib/include/pj/config_site.h" -Value $configLines
 
-        Write-Host "Forcing static runtime in all PJSIP projects..."
+         Write-Host "Forcing static runtime in all PJSIP projects..."
 
         Get-ChildItem -Path "." -Recurse -File -Filter "*.vcxproj" | ForEach-Object {
             $vcxprojPath = $_.FullName
@@ -161,10 +161,27 @@ jobs:
                 "<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>"
             )
 
+            $vcxprojText = $vcxprojText.Replace(
+                "<ClCompile>",
+                "<ClCompile><RuntimeLibrary>MultiThreaded</RuntimeLibrary>"
+            )
+
             Set-Content -Path $vcxprojPath -Value $vcxprojText -Encoding UTF8
         }
 
+        Write-Host "Validating PJSIP runtime configuration..."
+
+        $dynamicRuntimeReferences = Get-ChildItem -Path "." -Recurse -File -Filter "*.vcxproj" |
+            Select-String -Pattern "<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>"
+
+        if ($dynamicRuntimeReferences) {
+            Write-Error "Dynamic runtime references still exist in PJSIP projects."
+            $dynamicRuntimeReferences
+            exit 1
+        }
+
         Write-Host "Static runtime configured in all PJSIP projects."
+        Write-Host "Building PJSIP with MSBuild..."
         Write-Host "Building PJSIP with MSBuild..."
 
         # Build PJSIP using MSBuild with solution file
@@ -288,27 +305,9 @@ jobs:
 
         Set-Content -Path $projectFile -Value $projectText -Encoding UTF8
 
-        Write-Host "Disabling video directly in MicroSIP source files..."
+        Write-Host "Validating MicroSIP project..."
 
-        $sourceFiles = Get-ChildItem -Path "." -File -Include "*.h","*.cpp"
-
-        foreach ($sourceFile in $sourceFiles) {
-            $sourceText = Get-Content -Path $sourceFile.FullName -Raw
-
-            $sourceText = $sourceText.Replace(
-                "#define _GLOBAL_VIDEO",
-                "// #define _GLOBAL_VIDEO"
-            )
-
-            Set-Content -Path $sourceFile.FullName -Value $sourceText -Encoding UTF8
-        }
-
-        Write-Host "Validating project and source changes..."
-
-        $opusReferences = Select-String `
-            -Path $projectFile `
-            -Pattern "opus.lib" `
-            -SimpleMatch
+        $opusReferences = Select-String -Path $projectFile -Pattern "opus.lib" -SimpleMatch
 
         if ($opusReferences) {
             Write-Error "opus.lib references still exist in microsip.vcxproj"
@@ -316,17 +315,8 @@ jobs:
             exit 1
         }
 
-        $activeVideoDefinitions = Get-ChildItem -Path "." -File -Include "*.h","*.cpp" |
-            Select-String -Pattern "^\s*#define\s+_GLOBAL_VIDEO"
-
-        if ($activeVideoDefinitions) {
-            Write-Error "Active _GLOBAL_VIDEO definitions still exist."
-            $activeVideoDefinitions
-            exit 1
-        }
-
         Write-Host "Opus external library removed."
-        Write-Host "MicroSIP video source code disabled."
+        Write-Host "Video support retained in MicroSIP."
         Write-Host "Static runtime enabled."
 
         $msbuild = "msbuild"
