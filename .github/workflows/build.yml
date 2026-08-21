@@ -216,6 +216,25 @@ jobs:
             }
         }
 
+        # Create the exact PJSIP library name expected by MicroSIP
+        $expectedPjLib = Join-Path $libDest "libpjproject-i386-Win32-vc14-Release-Static.lib"
+        $pjProjectLib = Get-ChildItem -Path "pjproject" -Recurse -File -Filter "libpjproject*.lib" | Select-Object -First 1
+
+        if (-not $pjProjectLib) {
+            Write-Host "Available PJSIP libraries:"
+            Get-ChildItem -Path "pjproject" -Recurse -File -Filter "*.lib" | ForEach-Object {
+                Write-Host $_.FullName
+            }
+
+            Write-Error "No libpjproject library was generated."
+            exit 1
+        }
+
+        Write-Host "PJSIP library found: $($pjProjectLib.FullName)"
+        Write-Host "Creating expected library: $expectedPjLib"
+        Copy-Item -Path $pjProjectLib.FullName -Destination $expectedPjLib -Force
+
+
         # List what we have
         Write-Host "Libraries in lib/:"
         Get-ChildItem -Path "$libDest/*.lib" -ErrorAction SilentlyContinue | ForEach-Object {
