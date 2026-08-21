@@ -145,6 +145,26 @@ jobs:
         )
         Set-Content -Path "pjlib/include/pj/config_site.h" -Value $configLines
 
+        Write-Host "Forcing static runtime in all PJSIP projects..."
+
+        Get-ChildItem -Path "." -Recurse -File -Filter "*.vcxproj" | ForEach-Object {
+            $vcxprojPath = $_.FullName
+            $vcxprojText = Get-Content -Path $vcxprojPath -Raw
+
+            $vcxprojText = $vcxprojText.Replace(
+                "<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>",
+                "<RuntimeLibrary>MultiThreaded</RuntimeLibrary>"
+            )
+
+            $vcxprojText = $vcxprojText.Replace(
+                "<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>",
+                "<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>"
+            )
+
+            Set-Content -Path $vcxprojPath -Value $vcxprojText -Encoding UTF8
+        }
+
+        Write-Host "Static runtime configured in all PJSIP projects."
         Write-Host "Building PJSIP with MSBuild..."
 
         # Build PJSIP using MSBuild with solution file
@@ -250,34 +270,63 @@ jobs:
         $projectFile = "microsip.vcxproj"
         $projectText = Get-Content -Path $projectFile -Raw
 
-        # Remove the external Opus library
+        # Remove external Opus library
         $projectText = $projectText.Replace("opus.lib;", "")
         $projectText = $projectText.Replace(";opus.lib", "")
         $projectText = $projectText.Replace("opus.lib", "")
 
-        # Disable MicroSIP video code because PJSIP video is disabled
-        $projectText = $projectText.Replace("_GLOBAL_VIDEO;", "")
-        $projectText = $projectText.Replace(";_GLOBAL_VIDEO", "")
-        $projectText = $projectText.Replace("_GLOBAL_VIDEO", "")
+        # Keep static runtime required by static MFC
+        $projectText = $projectText.Replace(
+            "<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>",
+            "<RuntimeLibrary>MultiThreaded</RuntimeLibrary>"
+        )
 
-        # Keep static MFC and static C runtime
-        $projectText = $projectText.Replace("<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>", "<RuntimeLibrary>MultiThreaded</RuntimeLibrary>")
-        $projectText = $projectText.Replace("<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>", "<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>")
+        $projectText = $projectText.Replace(
+            "<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>",
+            "<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>"
+        )
 
         Set-Content -Path $projectFile -Value $projectText -Encoding UTF8
 
-        Write-Host "Validating project changes..."
+        Write-Host "Disabling video directly in MicroSIP source files..."
 
-        $forbiddenReferences = Select-String -Path $projectFile -Pattern "opus.lib|_GLOBAL_VIDEO" -AllMatches
+        $sourceFiles = Get-ChildItem -Path "." -File -Include "*.h","*.cpp"
 
-        if ($forbiddenReferences) {
-            Write-Error "Forbidden references still exist in microsip.vcxproj"
-            $forbiddenReferences
+        foreach ($sourceFile in $sourceFiles) {
+            $sourceText = Get-Content -Path $sourceFile.FullName -Raw
+
+            $sourceText = $sourceText.Replace(
+                "#define _GLOBAL_VIDEO",
+                "// #define _GLOBAL_VIDEO"
+            )
+
+            Set-Content -Path $sourceFile.FullName -Value $sourceText -Encoding UTF8
+        }
+
+        Write-Host "Validating project and source changes..."
+
+        $opusReferences = Select-String `
+            -Path $projectFile `
+            -Pattern "opus.lib" `
+            -SimpleMatch
+
+        if ($opusReferences) {
+            Write-Error "opus.lib references still exist in microsip.vcxproj"
+            $opusReferences
+            exit 1
+        }
+
+        $activeVideoDefinitions = Get-ChildItem -Path "." -File -Include "*.h","*.cpp" |
+            Select-String -Pattern "^\s*#define\s+_GLOBAL_VIDEO"
+
+        if ($activeVideoDefinitions) {
+            Write-Error "Active _GLOBAL_VIDEO definitions still exist."
+            $activeVideoDefinitions
             exit 1
         }
 
         Write-Host "Opus external library removed."
-        Write-Host "MicroSIP video code disabled."
+        Write-Host "MicroSIP video source code disabled."
         Write-Host "Static runtime enabled."
 
         $msbuild = "msbuild"
