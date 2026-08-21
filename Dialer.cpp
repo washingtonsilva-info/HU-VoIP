@@ -708,9 +708,10 @@ void Dialer::RebuildButtons(bool init)
 			rect.left -= stepPx;
 			rect.right -= stepPx;
 		}
-		// Gravacao desabilitada na versao institucional HU VoIP
-		if (false) {
-			m_ButtonRec.Create(Translate(_T("REC")), WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_CHECKBOX | BS_PUSHLIKE | WS_DISABLED, rect, this, IDC_DIALER_REC);
+		// Controle mantido internamente, mas oculto na versao institucional HU VoIP
+
+		if (addRec) {
+			m_ButtonRec.Create(Translate(_T("REC")), WS_CHILD | WS_TABSTOP | BS_CHECKBOX | BS_PUSHLIKE | WS_DISABLED, rect, this, IDC_DIALER_REC);
 			m_ButtonRec.SetFont(GetFont());
 			AutoMove(m_ButtonRec.m_hWnd, 100, 100, 0, 0);
 			if (m_ToolTip) {
